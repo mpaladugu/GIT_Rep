@@ -1,0 +1,3 @@
+https://mgi.internal.com/folder1/file1.doc
+https://mgi.internal.com/folder2/file2.xls
+https://mgi.internal.com/folder3/file3.txt
