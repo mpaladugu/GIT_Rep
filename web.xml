@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app version="3.0" metadata-complete="true" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+	<description>Actimize Case Manager allows research and resolution of alert driven cases.</description> 
+	<distributable/>
+
+    <!-- ============== "Public" Context Parameters ================= -->
+
+  <!-- 
+     actimize.ini.location is the ACM initialization file.
+     You may use:
+     - An absolute path - /my-directory/my-acm.ini
+     - A relative path in the WAR - :/WEB-INF/config/my-acm.ini
+     - A path with system variables:
+       ${system:user.home} - process user home directory
+       ${system:user.dir} - process running directory 
+    -->
+	<context-param>
+		<param-name>actimize.ini.location</param-name>
+		<param-value>C:\actimize\RCM_510\config</param-value>
+	</context-param>	
+
+    <!-- ============== Other Context Parameters ================= -->
+
+    <!-- 
+      These you seldom touch
+    -->
+
+    <!-- Configure actimize.jreport.home in admin screen or in  acm.ini - it is much better -->
+    <!-- Note that both override this setting -->
+	<context-param>
+		<param-name>actimize.jreport.home</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+    <!-- Configure actimize.log4j.location in acm.ini or in -D - it is much better -->
+    <!-- Note that both override this setting -->
+	<context-param>
+		<param-name>actimize.log4j.location</param-name>
+		<param-value>:/WEB-INF/config/actimize_log4j.properties</param-value>
+	</context-param>
+	
+    <!-- ============ STOP HERE: No need to make changes ========== -->
+    <!-- 
+      these you never touch
+    -->
+
+	<context-param>
+		<param-name>acm_version</param-name>
+		<param-value>5.10.0.29</param-value>
+	</context-param>
+
+    <context-param>
+		<param-name>jreport.version</param-name>
+		<param-value>Release 13, Build 13030 Update 3, RCM 5.9, September 2015</param-value>
+	</context-param>	
+
+    <context-param>
+		<param-name>webAppRootKey</param-name>
+		<param-value>actimize510029.root</param-value>
+	</context-param>
+	
+	<context-param>
+		<param-name>wsdl_version</param-name>
+		<param-value>1.1.1.0</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>/WEB-INF/config/internalAppContext.xml
+					 /WEB-INF/config/actimize_applicationContext.xml</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>web.dhtml_jsp_path</param-name>
+      	<param-value>/jreport</param-value>
+    </context-param>
+    
+	<context-param>
+		<param-name>Owasp.CsrfGuard.Config</param-name>
+		<param-value>WEB-INF/config/Owasp.CsrfGuard.properties</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>Owasp.CsrfGuard.Config.Print</param-name>
+		<param-value>false</param-value>
+	</context-param>
+
+    
+    
+
+	<!-- ============== Filters ================= -->
+	<filter>
+        	<filter-name>Pre File Upload</filter-name>
+        	<filter-class>com.actimize.infrastructure.controllers.UploadInfoFilter</filter-class>
+	</filter>
+	
+	<filter>
+        	<filter-name>Connection Error Filter</filter-name>
+        	<filter-class>com.actimize.infrastructure.config.StartupErrorFilter</filter-class>
+	</filter>
+    
+	<filter>
+        <filter-name>Multilingual Support Filter</filter-name>
+        <filter-class>com.actimize.infrastructure.encoding.MultilingualSupportFilter</filter-class>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
+        <filter-name>Request Response Store</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <init-param>
+            <param-name>targetBeanName</param-name>
+            <param-value>requestResponseFilter</param-value>
+        </init-param>
+    </filter>
+    
+    <filter>
+    	<filter-name>Performance Monitor Filter</filter-name>
+    	<filter-class>com.actimize.infrastructure.perfmon.PerformanceMonitorHttpFilter</filter-class>
+    </filter>
+   
+    <filter>
+        <filter-name>Cache-Control Filter</filter-name>
+        <filter-class>com.actimize.infrastructure.cache.ACMCacheControlFilter</filter-class>
+    </filter>
+    
+	<filter>
+        	<filter-name>No Cache Filter</filter-name>
+        	<filter-class>com.actimize.infrastructure.cache.NoCacheFilter</filter-class>
+	</filter>
+
+	<filter>
+       	<filter-name>browserSecurityFilter</filter-name>
+       	<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>browserSecurityFilter</param-value>
+        </init-param>
+	</filter>
+
+	<!-- this is for ntlm pre-processing negotitation before header authentication filter -->
+	<filter>
+       	<filter-name>configuredNtlmHttpFilter</filter-name>
+       	<filter-class>com.actimize.infrastructure.authentication.external.ConfiguredNtlmHttpFilter</filter-class>
+     		<init-param>
+           	<param-name>init</param-name>
+            <param-value>lazy</param-value>
+   	    </init-param>
+	</filter>
+	
+   	<filter>
+        <filter-name>authenticationExceptionFilter</filter-name>
+        <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>exceptionTranslationFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+
+	<!-- this is authentication filter for header authentication -->
+	<filter>
+        <filter-name>configuredHeaderProcessingFilter</filter-name>
+        <filter-class>com.actimize.infrastructure.authentication.external.ConfiguredHeaderProcessingFilter</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>advancedProcessingFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+
+	<!-- this is authentication filter for login dialog internal -->
+	<filter>
+        <filter-name>regularAuthenticationProcessingFilter</filter-name>
+        <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>authenticationProcessingFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+    
+	<filter>
+        <filter-name>Delegation Processing Filter</filter-name>
+        <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>delegationProcessingFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
+        <filter-name>webServicesSecurityFilter</filter-name>
+        <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>filterWebServiceInvocationInterceptor</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+    
+    <filter>
+        <filter-name>requestSecurityFilter</filter-name>
+        <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>securityEnforcementFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+
+    <filter>
+        <filter-name>Session Timeout Filter</filter-name>
+        <filter-class>com.actimize.infrastructure.http.SessionTimeoutFilter</filter-class>
+    </filter>
+    <!-- manages the security context in the session. -->
+    <filter>
+        <filter-name>acegiSpringIntegrationFilter</filter-name>
+        <filter-class>org.acegisecurity.util.FilterToBeanProxy</filter-class>
+        <init-param>
+            <param-name>targetBean</param-name>
+            <param-value>autoIntegrationFilter</param-value>
+        </init-param>
+        <init-param>
+            <param-name>init</param-name>
+            <param-value>lazy</param-value>
+        </init-param>
+    </filter>
+
+	<filter>
+        <filter-name>vfsFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <init-param>
+            <param-name>targetBeanName</param-name>
+            <param-value>virtualFileSystemFilter</param-value>
+        </init-param>
+    </filter>
+    
+    <filter>
+    	<filter-name>Compress</filter-name>
+	    <filter-class>com.actimize.infrastructure.http.GZIPFilter</filter-class>
+  	</filter>
+
+    <filter>
+        <filter-name>Tab Listener Filter</filter-name>
+        <filter-class>com.actimize.infrastructure.tabs.TabsFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>Jreport Blocking Filter</filter-name>
+        <filter-class>com.actimize.infrastructure.config.RestrictedURLErrorFilter</filter-class>
+    </filter>
+    
+<!--     
+    OWASP CSRFGuard Filter
+ -->
+    <filter>
+		<filter-name>CSRFGuard</filter-name>
+		<filter-class>com.actimize.infrastructure.security.csrf.web.CsrfGuardFilterProxy</filter-class>
+	</filter>
+    
+    
+    <!-- ============== Filter Mappings ================= -->
+    
+     <filter-mapping>
+    	<filter-name>Pre File Upload</filter-name>
+    	<url-pattern>/AttachmentsPrev.go</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+      <filter-name>Connection Error Filter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>Multilingual Support Filter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>Request Response Store</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+    	<filter-name>Performance Monitor Filter</filter-name>
+    	<url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+    	<filter-name>Performance Monitor Filter</filter-name>
+    	<url-pattern>*.go</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.js</url-pattern>
+    </filter-mapping>
+     
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.css</url-pattern>
+    </filter-mapping>
+     
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.eot</url-pattern>
+    </filter-mapping>
+     
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.gif</url-pattern>
+    </filter-mapping>
+     
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.png</url-pattern>
+    </filter-mapping>
+     
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.jpg</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>Cache-Control Filter</filter-name>
+		<url-pattern>*.htc</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>/Blank.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>/BlankWithIndicator.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+       <filter-name>Cache-Control Filter</filter-name>
+       <url-pattern>*.htm</url-pattern>
+    </filter-mapping>
+     
+    <filter-mapping>
+      <filter-name>No Cache Filter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+      <filter-name>browserSecurityFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+        <filter-name>Session Timeout Filter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <!-- MUST apear before any other acegi filter mapping -->
+    <filter-mapping>
+      <filter-name>acegiSpringIntegrationFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>configuredNtlmHttpFilter</filter-name>
+        <url-pattern>/acegi/authentication_target_dummy.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>configuredNtlmHttpFilter</filter-name>
+        <url-pattern>/ntlm_services/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>configuredNtlmHttpFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>configuredNtlmHttpFilter</filter-name>
+        <url-pattern>/internal/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>authenticationExceptionFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>    
+
+    <filter-mapping>
+      <filter-name>configuredHeaderProcessingFilter</filter-name>
+      <url-pattern>/acegi/authentication_target_dummy.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>configuredHeaderProcessingFilter</filter-name>
+      <url-pattern>/ntlm_services/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>configuredHeaderProcessingFilter</filter-name>
+      <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>configuredHeaderProcessingFilter</filter-name>
+      <url-pattern>/internal/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>regularAuthenticationProcessingFilter</filter-name>
+      <url-pattern>/acegi/j_acegi_security_check</url-pattern>
+    </filter-mapping>
+
+	<filter-mapping>
+		<filter-name>Delegation Processing Filter</filter-name>
+		<url-pattern>/acegi/j_acegi_security_check</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>Delegation Processing Filter</filter-name>
+		<url-pattern>/acegi/authentication_target_dummy.jsp</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>Delegation Processing Filter</filter-name>
+		<url-pattern>/acegi/authentication_target_dummy_for_delegation.jsp</url-pattern>
+	</filter-mapping>
+
+
+    <filter-mapping>
+	     <filter-name>webServicesSecurityFilter</filter-name>
+	     <url-pattern>/services/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>requestSecurityFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+<!-- 	
+	OWASP CSRFGuard filter mapping. the order in which mappings are defined is important.
+	CSRFGuard should occurs deliberately after the security filter. we first authenticate and then 
+	guard for CSRF attacks
+ -->	
+	<filter-mapping>
+		<filter-name>CSRFGuard</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+      <filter-name>vfsFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <filter-mapping>
+    	<filter-name>Compress</filter-name>
+    	<url-pattern>*.jsp</url-pattern>
+  	</filter-mapping>
+
+  	<filter-mapping>
+    	<filter-name>Compress</filter-name>
+    	<url-pattern>*.go</url-pattern>
+  	</filter-mapping>
+
+    <filter-mapping>
+		<filter-name>Compress</filter-name>
+		<url-pattern>/api/*</url-pattern>
+	</filter-mapping>
+  	
+    <filter-mapping>
+		<filter-name>Compress</filter-name>
+		<url-pattern>/internal/*</url-pattern>
+	</filter-mapping>
+
+    <filter-mapping>
+      <filter-name>Tab Listener Filter</filter-name>
+      <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>Tab Listener Filter</filter-name>
+      <url-pattern>*.go</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+      <filter-name>Tab Listener Filter</filter-name>
+      <url-pattern>/plugin</url-pattern>
+    </filter-mapping>
+        
+   <filter-mapping>
+      <filter-name>Jreport Blocking Filter</filter-name>
+      <url-pattern>/jreport/*</url-pattern>
+    </filter-mapping>
+ 
+    <!-- ============== Listeners ================= -->
+	<listener>
+		<listener-class>com.actimize.infrastructure.util.ApplicationWatch</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>com.actimize.init.RCMContextLoaderListener</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>com.actimize.infrastructure.authentication.ACMPluginSessionListener</listener-class>
+	</listener>
+
+	<listener>
+		<listener-class>com.actimize.web.RCMSessionListener</listener-class>
+	</listener>
+	
+  <listener>
+    <listener-class>com.actimize.infrastructure.jreport.JreportListener</listener-class>
+  </listener>
+  
+  	<listener>
+		<listener-class>org.owasp.csrfguard.CsrfGuardListener</listener-class>
+	</listener>
+  
+	
+
+    <!-- ============== Servlets ================= -->
+	<!--servlet>
+		<servlet-name>default1</servlet-name>
+		<servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+		<init-param>
+			<param-name>debug</param-name>
+			<param-value>0</param-value>
+			</init-param>
+		<init-param>
+			<param-name>listings</param-name>
+			<param-value>false</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet-->
+
+	<servlet>
+		<servlet-name>InitConnections</servlet-name>
+		<servlet-class>com.actimize.init.InitConnections</servlet-class>
+		<load-on-startup>3</load-on-startup>
+	</servlet>
+
+	<servlet>
+        <servlet-name>mvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.rcm.ConfigurableDispatcherServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+
+	<servlet>
+        <servlet-name>JreportHelp</servlet-name>
+        <servlet-class>com.actimize.reports.JreportHelp</servlet-class>
+        <load-on-startup>6</load-on-startup>
+    </servlet>
+
+	<!-- STARTIS servlet definitions -->
+	<servlet>
+	    <display-name>Apache-Axis Servlet</display-name>
+	    <servlet-name>AxisServlet</servlet-name>
+	    <servlet-class>
+		org.apache.axis.transport.http.AxisServlet
+	    </servlet-class>
+	</servlet>
+
+	<servlet>
+	    <display-name>Axis Admin Servlet</display-name>
+	    <servlet-name>AdminServlet</servlet-name>
+	    <servlet-class>
+		org.apache.axis.transport.http.AdminServlet
+	    </servlet-class>
+	    <load-on-startup>100</load-on-startup>
+	</servlet>
+
+	<!-- This Servlet is a tool for SOAP debugging -->
+	<!-- <servlet>
+	    <servlet-name>SOAPMonitorService</servlet-name>
+	    <display-name>SOAPMonitorService</display-name>
+	    <servlet-class>
+		org.apache.axis.monitor.SOAPMonitorService
+	    </servlet-class>
+	    <init-param>
+	      <param-name>SOAPMonitorPort</param-name>
+	      <param-value>5001</param-value>
+	    </init-param>
+	    <load-on-startup>100</load-on-startup>
+	</servlet>-->
+	<!-- END AXIS servlet definitions -->
+
+	<!-- START JReport servlet definitions-->
+	<servlet>
+		<servlet-name>jrserver</servlet-name>
+		<servlet-class>com.actimize.infrastructure.config.ConfigurableJRServlet</servlet-class>		
+		<!--
+        <init-param>
+			<param-name>logall</param-name>
+			<param-value>true</param-value>
+		</init-param>
+        -->
+	</servlet>
+
+	<servlet>
+		<servlet-name>sendfile</servlet-name>
+		<servlet-class>jet.server.servlets.SendFileServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>dhtml</servlet-name>
+		<servlet-class>jet.web.dhtml.DHTMLlet</servlet-class>
+  	</servlet>
+  	
+  	<servlet>
+  		<servlet-name>WebOSServlet</servlet-name>
+  		<servlet-class>com.jinfonet.web.client.WebOSServlet</servlet-class>
+	</servlet>
+
+
+	<!-- END JReport servlet definitions-->
+	<servlet>
+		<servlet-name>DynamicImage</servlet-name>
+		<servlet-class>com.actimize.infrastructure.images.ImageServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>ReportParametersValidation</servlet-name>
+		<servlet-class>com.actimize.infrastructure.report.ReportParametersServlet</servlet-class>
+	</servlet>
+	
+    <servlet>
+        <servlet-name>plugin</servlet-name>
+        <servlet-class>com.actimize.infrastructure.plugin.impl.runtime.PluginServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>chartFX</servlet-name>
+        <servlet-class>com.actimize.dashboard.controller.DashboardChartServlet</servlet-class>
+    </servlet>
+
+	<servlet>
+        <servlet-name>mailtoHandler</servlet-name>
+        <servlet-class>com.actimize.infrastructure.MailtoHandlerServlet</servlet-class>
+    </servlet>
+
+	<servlet> 
+    	<servlet-name>translationConstants</servlet-name>
+    	<jsp-file>/WEB-INF/views/i18n/jsTranslationConstants.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsRCMLang</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMLang.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsRCMCollections</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMCollections.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>configurationConstants</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMConfigurations.jsp</jsp-file>  
+	</servlet>  
+
+	<servlet>
+    	<servlet-name>jsRCMUtilities</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMUtilities.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsRCMCore</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMCore.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsRCMDateTimeAndCalendar</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMDateTimeAndCalendar.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsRCMInternals</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMInternals.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsRCMAPIs</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsRCMAPIs.jsp</jsp-file>  
+	</servlet> 
+
+	<servlet> 
+    	<servlet-name>jsDARTIncludes</servlet-name>
+    	<jsp-file>/WEB-INF/views/javascript/jsDARTIncludes.jsp</jsp-file>  
+	</servlet> 
+
+    <!-- ============== Servlet Mappings ================= -->
+	
+	<!-- The mapping for the default servlet --> 
+	<!--servlet-mapping>
+		<servlet-name>default1</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping-->
+	
+	<!-- START AXIS Servlet mappings-->
+	
+	<servlet-mapping>
+  		<servlet-name>WebOSServlet</servlet-name>
+  		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+ 
+ 	<servlet-mapping>
+  		<servlet-name>WebOSServlet</servlet-name>
+  		<url-pattern>*.vt</url-pattern>
+	</servlet-mapping>
+ 
+	<servlet-mapping>
+  		<servlet-name>WebOSServlet</servlet-name>
+  		<url-pattern>/vt/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>AxisServlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>AxisServlet</servlet-name>
+		<url-pattern>/ntlm_services/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+    	<servlet-name>configurationConstants</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmConfigurations.js</url-pattern> 
+	</servlet-mapping>
+	 
+	<servlet-mapping>
+    	<servlet-name>translationConstants</servlet-name> 
+    	<url-pattern>/translation_lang/*</url-pattern> 
+	</servlet-mapping> 
+	
+	<servlet-mapping>
+    	<servlet-name>jsRCMLang</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmLang.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsRCMCollections</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmCollections.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsRCMUtilities</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmUtilities.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsRCMCore</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmCore.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsRCMDateTimeAndCalendar</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmDateTimeAndCalendar.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsRCMInternals</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmInternals.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsRCMAPIs</servlet-name> 
+    	<url-pattern>/javascripts3.0/rcmAPIs.js</url-pattern> 
+	</servlet-mapping> 
+
+	<servlet-mapping>
+    	<servlet-name>jsDARTIncludes</servlet-name> 
+    	<url-pattern>/javascripts3.0/DARTIncludes.js</url-pattern> 
+	</servlet-mapping> 
+
+	<!-- This Servlet is a tool for SOAP debugging -->
+	<!--<servlet-mapping>
+		<servlet-name>SOAPMonitorService</servlet-name>
+		<url-pattern>/SOAPMonitor</url-pattern>
+	</servlet-mapping>-->
+
+	<!--START JReport Servlet mappings-->
+	<servlet-mapping>
+		<servlet-name>jrserver</servlet-name>
+		<url-pattern>/jrserver/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>sendfile</servlet-name>
+		<url-pattern>/sendfile/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>dhtml</servlet-name>
+		<url-pattern>/dhtml/*</url-pattern>
+	</servlet-mapping>
+	<!--END JReport Servlet mappings-->
+
+    <servlet-mapping>
+        <servlet-name>mvc</servlet-name>
+        <url-pattern>*.go</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>mvc</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>mvc</servlet-name>
+        <url-pattern>/internal/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>mvc</servlet-name>
+        <url-pattern>/workItems/*</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+       <servlet-name>mvc</servlet-name>
+       <url-pattern>/Alerts.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>JreportHelp</servlet-name>
+        <url-pattern>/jreport/dhtmljsp/help.jsp</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+       <servlet-name>mvc</servlet-name>
+       <url-pattern>/Cases.jsp</url-pattern>
+    </servlet-mapping>
+    
+    <servlet-mapping>
+       <servlet-name>mvc</servlet-name>
+       <url-pattern>/LogViewer.jsp</url-pattern>
+    </servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>mvc</servlet-name>
+		<url-pattern>/XMLDrillDown.jsp</url-pattern>
+	</servlet-mapping>
+    
+    <servlet-mapping>
+       <servlet-name>mvc</servlet-name>
+       <url-pattern>/dynamicScripts.js</url-pattern>
+    </servlet-mapping>
+    
+	<servlet-mapping>
+		<servlet-name>DynamicImage</servlet-name>
+		<url-pattern>/dynamicImage/*</url-pattern>
+	</servlet-mapping>
+	
+	<servlet-mapping>
+       <servlet-name>mvc</servlet-name>
+       <url-pattern>/HomePage.jsp</url-pattern>
+    </servlet-mapping>
+	
+	<servlet-mapping>
+		<servlet-name>ReportParametersValidation</servlet-name>
+		<url-pattern>/parameterValidation</url-pattern>
+	</servlet-mapping>	
+
+    <servlet-mapping>
+        <servlet-name>plugin</servlet-name>
+        <url-pattern>/plugin</url-pattern>
+    </servlet-mapping>
+
+   <servlet-mapping>
+        <servlet-name>chartFX</servlet-name>
+        <url-pattern>/chartFX</url-pattern>
+   </servlet-mapping>
+
+	<servlet-mapping>
+        <servlet-name>mailtoHandler</servlet-name>
+        <url-pattern>/mailtoHandler</url-pattern>
+   </servlet-mapping>
+
+    <!-- ============== Misc ================= -->
+
+	 <!-- uncomment this if you want the admin servlet -->
+	 <!--
+	  <servlet-mapping>
+		<servlet-name>AdminServlet</servlet-name>
+		<url-pattern>/servlet/AdminServlet</url-pattern>
+	  </servlet-mapping>
+	 -->
+
+	<!-- END AXIS Servlet mappings-->
+
+	<session-config>
+		<session-timeout>30</session-timeout>
+	</session-config>
+
+	<!-- START AXIS mime mappings-->
+	<mime-mapping>
+	   <extension>wsdl</extension>
+	   <mime-type>text/xml</mime-type>
+	</mime-mapping>
+
+
+	<mime-mapping>
+	   <extension>xsd</extension>
+	   <mime-type>text/xml</mime-type>
+	</mime-mapping>
+	<!-- END AXIS mime mappings-->
+
+
+	<mime-mapping>
+	    <extension>xls</extension>
+	    <mime-type>application/vnd.ms-excel</mime-type>
+	</mime-mapping>
+
+	<mime-mapping>
+	    <extension>htc</extension>
+	    <mime-type>text/x-component</mime-type>
+	</mime-mapping>
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+    
+	<!-- These mappings are used for security reasons so that RCM prevents 
+		details of its pages and internal logic from getting exposed.  -->	
+	<!-- We treat 404 as 403 because do not want to expose that the page does 
+		not exist and allow page enumeration. Therefore inform the user as if 
+		the page does exist but they do no have access permissions -->	
+	<!-- The error page message for 500 and an Exception is the same but in the
+		case of an exception, we want to attempt to log the error - and (if in 
+		development mode) display the stack trace on the page itself. -->		
+    <error-page>
+		<error-code>403</error-code>
+		<location>/jsp/exception/error403.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/jsp/exception/error403.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>503</error-code>
+		<location>/jsp/exception/error503.jsp</location>
+	</error-page>
+		<error-page>
+		<error-code>500</error-code>
+		<location>/jsp/exception/RuntimeError.jsp</location>
+	</error-page>
+	<error-page>
+        <exception-type>java.lang.Throwable</exception-type>
+        <location>/jsp/exception/RuntimeError.jsp</location>
+    </error-page>
+	
+    <!-- ============== Security Constraints ================= -->	
+	<!-- Defines security constraints for ACM users when using container authentication 
+			for authenticating incoming requests.
+		 Edit security-role,auth-constraint and realm-name tags to specify real names defined in the container's Realm.
+	-->
+	
+	<!--
+	<security-constraint>
+  		<display-name>Security</display-name>
+  		<web-resource-collection>
+   			<web-resource-name>Entry Point</web-resource-name>
+   			<url-pattern>/acegi/authentication_target_dummy.jsp</url-pattern>
+  		</web-resource-collection>
+  		<auth-constraint>
+		   <role-name>ACM QA</role-name>
+		</auth-constraint>
+ 	</security-constraint>
+ 
+ 	<login-config>
+  		<auth-method>FORM</auth-method>
+  		<realm-name>sso-realm</realm-name>
+  		<form-login-config>
+   		   <form-login-page>/acegi/login_form.jsp</form-login-page>
+   		   <form-error-page>/acegi/login_form.jsp</form-error-page>
+  		</form-login-config>
+ 	</login-config>
+ 	
+ 	<security-role>
+ 		<role-name>ACM QA</role-name>
+ 	</security-role>
+	-->
+
+    <!-- ============== JReport Environment =============== -->
+	<env-entry>
+		<env-entry-name>jreport.servenv</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>com.actimize.infrastructure.jreport.ACMJreportServerEnv</env-entry-value>
+	</env-entry>
+
+	<jsp-config>
+
+		<taglib>
+		    <taglib-uri>http://www.owasp.org/index.php/Category:OWASP_CSRFGuard_Project/Owasp.CsrfGuard.tld</taglib-uri>
+		    <taglib-location>/WEB-INF/tlds/Owasp.CsrfGuard.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+		    <taglib-uri>http://www.actimize.com/taglib/actimize-taglib</taglib-uri>
+		    <taglib-location>/WEB-INF/tlds/actimize-taglib.tld</taglib-location>
+		</taglib>
+	
+		<taglib>
+			<taglib-uri>http://www.tomsawyer.com/img</taglib-uri>
+			<taglib-location>/WEB-INF/tlds/tsimg.tld</taglib-location>
+		</taglib>
+
+		<jsp-property-group>
+			<url-pattern>*.jsp</url-pattern>
+			<page-encoding>UTF-8</page-encoding>
+			<scripting-invalid>false</scripting-invalid>
+		</jsp-property-group>
+	</jsp-config>
+
+</web-app>
